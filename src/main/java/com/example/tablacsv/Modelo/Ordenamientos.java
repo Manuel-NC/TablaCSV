@@ -40,7 +40,7 @@ public class Ordenamientos {
     }
 
     /**
-     * Ejecuta el metodo QuickSort sobre una copia de los datos y mide su tiempo.
+     * Ejecuta el metodo QuickSort de clase sobre una copia de los datos y mide su tiempo.
      *
      * @param datos Lista de canciones a ordenar.
      * @param col   Indice de la columna elegida para ordenar.
@@ -49,41 +49,74 @@ public class Ordenamientos {
     public ResultadoOrdenamiento ejecutarQuickSort(ArrayList<Cancion> datos, int col) {
         Cancion[] arr = clonarArreglo(datos);
         long inicio = System.nanoTime();
-        quickSort(arr, 0, arr.length - 1, col);
+        quickSort(arr, col);
         long fin = System.nanoTime();
         return new ResultadoOrdenamiento("QuickSort", fin - inicio, convertirALista(arr));
     }
 
     /**
-     * Ordena recursivamente el arreglo dividiendolo alrededor de un pivote central.
+     * Inicia el ordenamiento rapido llamando al metodo recursivo con los limites del arreglo.
      *
-     * @param arr Arreglo de canciones a ordenar.
-     * @param izq Indice inicial del subarreglo.
-     * @param der Indice final del subarreglo.
+     * @param a   Arreglo de canciones a ordenar.
      * @param col Indice de la columna de comparacion.
      */
-    private void quickSort(Cancion[] arr, int izq, int der, int col) {
-        int i = izq;
-        int j = der;
-        Cancion pivote = arr[(izq + der) / 2];
-
-        while (i <= j) {
-            while (arr[i].compararPorColumna(pivote, col) < 0) i++;
-            while (arr[j].compararPorColumna(pivote, col) > 0) j--;
-            if (i <= j) {
-                Cancion aux = arr[i];
-                arr[i] = arr[j];
-                arr[j] = aux;
-                i++;
-                j--;
-            }
+    public void quickSort(Cancion[] a, int col) {
+        if (a.length > 1) {
+            recursivo(0, a.length - 1, a, col);
         }
-        if (izq < j) quickSort(arr, izq, j, col);
-        if (i < der) quickSort(arr, i, der, col);
     }
 
     /**
-     * Ejecuta el metodo Shell Sort reduciendo saltos a la mitad y mide su tiempo.
+     * Metodo recursivo visto en clase que acomoda el pivote en su posicion final
+     * moviendo los indices izquierdo y derecho mediante una bandera.
+     *
+     * @param inicio Indice inicial del subarreglo.
+     * @param fin    Indice final del subarreglo.
+     * @param a      Arreglo de canciones a ordenar.
+     * @param col    Indice de la columna de comparacion.
+     */
+    private void recursivo(int inicio, int fin, Cancion[] a, int col) {
+        int izq = inicio;
+        int der = fin;
+        int pos = inicio;
+        boolean band = true;
+
+        while (band) {
+            band = false;
+
+            while (a[pos].compararPorColumna(a[der], col) <= 0 && pos != der) {
+                der = der - 1;
+            }
+
+            if (pos != der) {
+                Cancion aux = a[pos];
+                a[pos] = a[der];
+                a[der] = aux;
+                pos = der;
+
+                while (a[pos].compararPorColumna(a[izq], col) >= 0 && pos != izq) {
+                    izq = izq + 1;
+                }
+
+                if (pos != izq) {
+                    band = true;
+                    aux = a[pos];
+                    a[pos] = a[izq];
+                    a[izq] = aux;
+                    pos = izq;
+                }
+            }
+        }
+        if ((pos - 1) > inicio) {
+            recursivo(inicio, pos - 1, a, col);
+        }
+        if (fin > (pos + 1)) {
+            recursivo(pos + 1, fin, a, col);
+        }
+    }
+
+    /**
+     * Ejecuta el metodo Shell Sort de clase sobre una copia de los datos y mide su tiempo.
      *
      * @param datos Lista de canciones a ordenar.
      * @param col   Indice de la columna elegida para ordenar.
@@ -92,29 +125,45 @@ public class Ordenamientos {
     public ResultadoOrdenamiento ejecutarShellSort(ArrayList<Cancion> datos, int col) {
         Cancion[] arr = clonarArreglo(datos);
         long inicio = System.nanoTime();
-
-        int n = arr.length;
-        int salto = n / 2;
-        while (salto > 0) {
-            for (int i = salto; i < n; i++) {
-                Cancion temp = arr[i];
-                int j = i;
-                while (j >= salto && arr[j - salto].compararPorColumna(temp, col) > 0) {
-                    arr[j] = arr[j - salto];
-                    j -= salto;
-                }
-                arr[j] = temp;
-            }
-            salto /= 2;
-        }
-
+        shell(arr, col);
         long fin = System.nanoTime();
         return new ResultadoOrdenamiento("Shell Sort", fin - inicio, convertirALista(arr));
     }
 
     /**
-     * Ejecuta el metodo de Seleccion Directa buscando el elemento menor en cada
-     * pasada y mide su tiempo.
+     * Ordena el arreglo usando el metodo Shell visto en clase, dividiendo
+     * el intervalo a la mitad y realizando pasadas con bandera hasta que no haya cambios.
+     *
+     * @param a   Arreglo de canciones a ordenar.
+     * @param col Indice de la columna de comparacion.
+     */
+    public void shell(Cancion[] a, int col) {
+        int inter = a.length + 1;
+
+        while (inter > 1) {
+            inter = inter / 2;
+            boolean band = true;
+
+            while (band) {
+                band = false;
+                int i = 0;
+
+                while ((i + inter) < a.length) {
+                    if (a[i].compararPorColumna(a[i + inter], col) > 0) {
+                        Cancion aux = a[i];
+                        a[i] = a[i + inter];
+                        a[i + inter] = aux;
+                        band = true;
+                    }
+                    i++;
+                }
+            }
+        }
+    }
+
+    /**
+     * Ejecuta el metodo de Seleccion Directa de clase sobre una copia de los datos
+     * y mide su tiempo.
      *
      * @param datos Lista de canciones a ordenar.
      * @param col   Indice de la columna elegida para ordenar.
@@ -123,24 +172,33 @@ public class Ordenamientos {
     public ResultadoOrdenamiento ejecutarSeleccionDirecta(ArrayList<Cancion> datos, int col) {
         Cancion[] arr = clonarArreglo(datos);
         long inicio = System.nanoTime();
-
-        int n = arr.length;
-        for (int i = 0; i < n - 1; i++) {
-            int menor = i;
-            for (int j = i + 1; j < n; j++) {
-                if (arr[j].compararPorColumna(arr[menor], col) < 0) {
-                    menor = j;
-                }
-            }
-            if (menor != i) {
-                Cancion aux = arr[i];
-                arr[i] = arr[menor];
-                arr[menor] = aux;
-            }
-        }
-
+        seleccion(arr, col);
         long fin = System.nanoTime();
         return new ResultadoOrdenamiento("Seleccion Directa", fin - inicio, convertirALista(arr));
+    }
+
+    /**
+     * Ordena el arreglo buscando el elemento menor en cada recorrido e
+     * intercambiandolo con la posicion actual como se vio en clase.
+     *
+     * @param a   Arreglo de canciones a ordenar.
+     * @param col Indice de la columna de comparacion.
+     */
+    public void seleccion(Cancion[] a, int col) {
+        for (int i = 0; i < a.length - 1; i++) {
+            Cancion menor = a[i];
+            int k = i;
+
+            for (int j = i + 1; j < a.length; j++) {
+                if (a[j].compararPorColumna(menor, col) < 0) {
+                    menor = a[j];
+                    k = j;
+                }
+            }
+
+            a[k] = a[i];
+            a[i] = menor;
+        }
     }
 
     /**
