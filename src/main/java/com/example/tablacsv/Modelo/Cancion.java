@@ -3,7 +3,7 @@ package com.example.tablacsv.Modelo;
 /**
  * Representa una fila del conjunto de datos de musica con sus 33 columnas.
  * Guarda cada campo como texto para mostrarlo en la tabla y como numero
- * decimal en las columnas numericas.
+ * decimal en las columnas numericas para poder ordenarlas rapido.
  */
 public class Cancion {
 
@@ -41,7 +41,8 @@ public class Cancion {
 
     /**
      * Construye un objeto Cancion guardando los 33 campos de texto y
-     * convirtiendo a numero las columnas que son numericas.
+     * convirtiendo a numero las columnas que son numericas. Los campos vacios
+     * se marcan con infinito positivo para que queden al final al ordenar.
      *
      * @param campos Arreglo de cadenas obtenido al separar una fila del CSV.
      */
@@ -56,9 +57,9 @@ public class Cancion {
 
             if (esNumerica[i]) {
                 try {
-                    this.valoresNumericos[i] = val.isEmpty() ? Double.NEGATIVE_INFINITY : Double.parseDouble(val);
+                    this.valoresNumericos[i] = val.isEmpty() ? Double.POSITIVE_INFINITY : Double.parseDouble(val);
                 } catch (NumberFormatException e) {
-                    this.valoresNumericos[i] = Double.NEGATIVE_INFINITY;
+                    this.valoresNumericos[i] = Double.POSITIVE_INFINITY;
                 }
             }
         }
@@ -104,7 +105,7 @@ public class Cancion {
 
     /**
      * Compara esta cancion con otra tomando en cuenta si la columna
-     * es numerica o de texto.
+     * es numerica o de texto, mandando siempre los valores vacios al final.
      *
      * @param otra Objeto Cancion contra el cual se va a comparar.
      * @param col  Indice de la columna por la cual se esta ordenando.
@@ -114,7 +115,12 @@ public class Cancion {
         if (esNumerica[col]) {
             return Double.compare(this.valoresNumericos[col], otra.valoresNumericos[col]);
         } else {
-            return this.valores[col].compareToIgnoreCase(otra.valores[col]);
+            String v1 = this.valores[col];
+            String v2 = otra.valores[col];
+            if (v1.isEmpty() && v2.isEmpty()) return 0;
+            if (v1.isEmpty()) return 1;
+            if (v2.isEmpty()) return -1;
+            return v1.compareToIgnoreCase(v2);
         }
     }
 }
